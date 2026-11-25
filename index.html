@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Little Steps Big Dreams</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="container header-inner">
+      <div class="brand">
+        <a href="#home" id="brandLink" class="brand-title">Little Steps Big Dreams</a>
+        <p id="siteTagline" class="brand-tagline">Character, curiosity, and everyday growth for children</p>
+      </div>
+
+      <div class="lang-switcher" role="group" aria-label="Language Switcher">
+        <button type="button" class="lang-btn active" data-lang="en">EN</button>
+        <button type="button" class="lang-btn" data-lang="id">ID</button>
+        <button type="button" class="lang-btn" data-lang="zh">中文</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="container main-content">
+    <!-- Tampilan Beranda (Daftar 4 Cerita) -->
+    <section id="homeView">
+      <div class="hero-box">
+        <h1 id="heroTitle">Little Steps Big Dreams</h1>
+        <p id="heroSubtitle">Stories and reflections on character education, tolerance, fun learning, P5 projects, and Montessori-inspired independence.</p>
+      </div>
+
+      <div id="articlesGrid" class="articles-grid"></div>
+    </section>
+
+    <!-- Tampilan Baca Artikel Penuh -->
+    <article id="articleView" class="article-view hidden">
+      <button type="button" id="backBtn" class="back-btn">← Back to All Stories</button>
+
+      <header class="article-header">
+        <h2 id="articleTitle"></h2>
+      </header>
+
+      <div id="articleGallery" class="article-gallery"></div>
+
+      <div id="articleBody" class="article-body"></div>
+
+      <div class="article-footer-nav">
+        <button type="button" id="backBtnBottom" class="back-btn">← Back to All Stories</button>
+      </div>
+    </article>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <p id="footerText">© Little Steps Big Dreams — Multilingual Stories on Early Childhood & Character Growth</p>
+    </div>
+  </footer>
+
+  <script src="articles.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
