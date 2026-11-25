@@ -54,6 +54,17 @@
     }
   };
 
+  function toSafeText(value, lang) {
+    if (value == null) return "";
+    if (typeof value === "string" || typeof value === "number") return String(value);
+    if (typeof value === "object") {
+      const picked = value[lang] || value.id || value.en || value.zh;
+      if (typeof picked === "string" || typeof picked === "number") return String(picked);
+      return "";
+    }
+    return "";
+  }
+
   function getArticlesList() {
     if (Array.isArray(window.articlesData)) return window.articlesData;
     if (typeof articlesData !== "undefined" && Array.isArray(articlesData)) return articlesData;
@@ -67,14 +78,54 @@
     return article[lang] || article.id || article.en || article.zh || {};
   }
 
-  function formatPartLabel(article, lang) {
-    const rawId = String(article.id || "");
-    const match = rawId.match(/part[-_\s]*(\d+)/i);
-    const num = match ? match[1] : rawId;
+  function getPartKey(article, idx) {
+    if (article && article.id) return String(article.id);
+    return `part-${idx + 1}`;
+  }
 
-    if (lang === "en") return num ? `Part ${num}` : "Article";
-    if (lang === "zh") return num ? `第 ${num} 部分` : "文章";
-    return num ? `Bagian ${num}` : "Artikel";
+  function formatPartLabel(article, lang, idx) {
+    const customPart = toSafeText(article && article.part, lang).trim();
+    if (customPart) return customPart;
+
+    const rawId = getPartKey(article, idx);
+    const match = rawId.match(/part[-_\s]*(\d+)/i);
+    const num = match ? match[1] : String(idx + 1);
+
+    if (lang === "en") return `Part ${num}`;
+    if (lang === "zh") return `第 ${num} 部分`;
+    return `Bagian ${num}`;
+  }
+
+  function normalizeImageSrc(src) {
+    if (!src || typeof src !== "string") return "";
+    const clean = src.trim().replace(/^\/+/, "");
+    if (clean.startsWith("images/")) return clean;
+    return `images/${clean}`;
+  }
+
+  function attachSmartImage(imgEl, rawSrc, altText) {
+    const primarySrc = normalizeImageSrc(rawSrc);
+    if (!primarySrc) return;
+
+    const fallbacks = [];
+    if (primarySrc.endsWith(".jpg")) {
+      fallbacks.push(primarySrc.replace(/\.jpg$/i, ".jpeg"));
+      fallbacks.push(primarySrc.replace(/\.jpg$/i, ".png"));
+      fallbacks.push(primarySrc.replace(/\.jpg$/i, ".JPG"));
+    }
+
+    let attemptIndex = 0;
+    imgEl.alt = altText;
+    imgEl.src = primarySrc;
+
+    imgEl.onerror = function () {
+      if (attemptIndex < fallbacks.length) {
+        const nextSrc = fallbacks[attemptIndex++];
+        imgEl.src = nextSrc;
+      } else {
+        imgEl.onerror = null;
+      }
+    };
   }
 
   function applyStaticTranslations(lang) {
@@ -114,18 +165,18 @@
     });
     container.appendChild(allBtn);
 
-    const seenIds = new Set();
+    const seenKeys = new Set();
     list.forEach((article, idx) => {
-      const partKey = String(article.id || `item-${idx}`);
-      if (seenIds.has(partKey)) return;
-      seenIds.add(partKey);
+      const key = getPartKey(article, idx);
+      if (seenKeys.has(key)) return;
+      seenKeys.add(key);
 
       const btn = document.createElement("button");
       btn.type = "button";
-      btn.className = "filter-btn" + (selectedPart === partKey ? " active" : "");
-      btn.textContent = formatPartLabel(article, lang);
+      btn.className = "filter-btn" + (selectedPart === key ? " active" : "");
+      btn.textContent = formatPartLabel(article, lang, idx);
       btn.addEventListener("click", function () {
-        selectedPart = partKey;
+        selectedPart = key;
         renderAll();
       });
       container.appendChild(btn);
@@ -139,8 +190,7 @@
 
     const filtered = list.filter((article, idx) => {
       if (selectedPart === "all") return true;
-      const partKey = String(article.id || `item-${idx}`);
-      return partKey === selectedPart;
+      return getPartKey(article, idx) === selectedPart;
     });
 
     if (filtered.length === 0) {
@@ -150,10 +200,11 @@
       return;
     }
 
-    filtered.forEach((article) => {
+    filtered.forEach((article, idx) => {
       const block = getLangBlock(article, lang);
-      const title = block.title || "";
-      const excerpt = block.excerpt || "";
+      const title = toSafeText(block.title, lang);
+      const excerpt = toSafeText(block.excerpt || block.summary, lang);
+      const partText = formatPartLabel(article, lang, idx);
 
       const card = document.createElement("article");
       card.className = "article-card";
@@ -164,9 +215,7 @@
         thumbWrap.className = "article-thumb-wrap";
         const img = document.createElement("img");
         img.className = "article-thumb";
-        img.src = images[0];
-        img.alt = title;
-        img.loading = "lazy";
+        attachSmartImage(img, images[0], title);
         thumbWrap.appendChild(img);
         card.appendChild(thumbWrap);
       }
@@ -176,7 +225,7 @@
 
       const partEl = document.createElement("p");
       partEl.className = "article-part";
-      partEl.textContent = formatPartLabel(article, lang);
+      partEl.textContent = partText;
 
       const titleEl = document.createElement("h3");
       titleEl.className = "article-title";
@@ -191,7 +240,7 @@
       readBtn.className = "read-btn";
       readBtn.textContent = t.readMore;
       readBtn.addEventListener("click", function () {
-        openModal(article, lang);
+        openModal(article, lang, idx);
       });
 
       body.appendChild(partEl);
@@ -204,7 +253,7 @@
     });
   }
 
-  function openModal(article, lang) {
+  function openModal(article, lang, idx) {
     const block = getLangBlock(article, lang);
     const modal = document.getElementById("article-modal");
     const partEl = document.getElementById("modal-part");
@@ -212,19 +261,19 @@
     const imagesEl = document.getElementById("modal-images");
     const contentEl = document.getElementById("modal-content");
 
-    partEl.textContent = formatPartLabel(article, lang);
-    titleEl.textContent = block.title || "";
+    const title = toSafeText(block.title, lang);
+    partEl.textContent = formatPartLabel(article, lang, idx);
+    titleEl.textContent = title;
 
     imagesEl.innerHTML = "";
     const images = Array.isArray(article.images) ? article.images : [];
     images.forEach((src) => {
       const img = document.createElement("img");
-      img.src = src;
-      img.alt = block.title || "";
+      attachSmartImage(img, src, title);
       imagesEl.appendChild(img);
     });
 
-    contentEl.innerHTML = block.content || "";
+    contentEl.innerHTML = toSafeText(block.content, lang);
 
     modal.classList.add("open");
     modal.setAttribute("aria-hidden", "false");
