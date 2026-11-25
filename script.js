@@ -54,14 +54,8 @@
     }
   };
 
-  function toSafeText(value, lang) {
-    if (value == null) return "";
+  function toStringSafe(value) {
     if (typeof value === "string" || typeof value === "number") return String(value);
-    if (typeof value === "object") {
-      const picked = value[lang] || value.id || value.en || value.zh;
-      if (typeof picked === "string" || typeof picked === "number") return String(picked);
-      return "";
-    }
     return "";
   }
 
@@ -84,9 +78,6 @@
   }
 
   function formatPartLabel(article, lang, idx) {
-    const customPart = toSafeText(article && article.part, lang).trim();
-    if (customPart) return customPart;
-
     const rawId = getPartKey(article, idx);
     const match = rawId.match(/part[-_\s]*(\d+)/i);
     const num = match ? match[1] : String(idx + 1);
@@ -96,32 +87,31 @@
     return `Bagian ${num}`;
   }
 
-  function normalizeImageSrc(src) {
-    if (!src || typeof src !== "string") return "";
-    const clean = src.trim().replace(/^\/+/, "");
-    if (clean.startsWith("images/")) return clean;
-    return `images/${clean}`;
+  function resolveImagePath(src) {
+    const raw = toStringSafe(src).trim().replace(/^\/+/, "");
+    if (!raw) return "";
+    if (raw.startsWith("images/")) return raw;
+    return `images/${raw}`;
   }
 
-  function attachSmartImage(imgEl, rawSrc, altText) {
-    const primarySrc = normalizeImageSrc(rawSrc);
-    if (!primarySrc) return;
+  function bindImage(imgEl, rawSrc, altText) {
+    const primary = resolveImagePath(rawSrc);
+    if (!primary) return;
 
-    const fallbacks = [];
-    if (primarySrc.endsWith(".jpg")) {
-      fallbacks.push(primarySrc.replace(/\.jpg$/i, ".jpeg"));
-      fallbacks.push(primarySrc.replace(/\.jpg$/i, ".png"));
-      fallbacks.push(primarySrc.replace(/\.jpg$/i, ".JPG"));
+    const candidates = [primary];
+    if (primary.toLowerCase().endsWith(".jpg")) {
+      candidates.push(primary.slice(0, -4) + ".jpeg");
+      candidates.push(primary.slice(0, -4) + ".png");
     }
 
-    let attemptIndex = 0;
+    let index = 0;
     imgEl.alt = altText;
-    imgEl.src = primarySrc;
+    imgEl.src = candidates[index];
 
     imgEl.onerror = function () {
-      if (attemptIndex < fallbacks.length) {
-        const nextSrc = fallbacks[attemptIndex++];
-        imgEl.src = nextSrc;
+      index += 1;
+      if (index < candidates.length) {
+        imgEl.src = candidates[index];
       } else {
         imgEl.onerror = null;
       }
@@ -165,11 +155,11 @@
     });
     container.appendChild(allBtn);
 
-    const seenKeys = new Set();
+    const seen = new Set();
     list.forEach((article, idx) => {
       const key = getPartKey(article, idx);
-      if (seenKeys.has(key)) return;
-      seenKeys.add(key);
+      if (seen.has(key)) return;
+      seen.add(key);
 
       const btn = document.createElement("button");
       btn.type = "button";
@@ -202,9 +192,9 @@
 
     filtered.forEach((article, idx) => {
       const block = getLangBlock(article, lang);
-      const title = toSafeText(block.title, lang);
-      const excerpt = toSafeText(block.excerpt || block.summary, lang);
-      const partText = formatPartLabel(article, lang, idx);
+      const title = toStringSafe(block.title);
+      const excerpt = toStringSafe(block.excerpt);
+      const partLabel = formatPartLabel(article, lang, idx);
 
       const card = document.createElement("article");
       card.className = "article-card";
@@ -215,7 +205,7 @@
         thumbWrap.className = "article-thumb-wrap";
         const img = document.createElement("img");
         img.className = "article-thumb";
-        attachSmartImage(img, images[0], title);
+        bindImage(img, images[0], title);
         thumbWrap.appendChild(img);
         card.appendChild(thumbWrap);
       }
@@ -225,7 +215,7 @@
 
       const partEl = document.createElement("p");
       partEl.className = "article-part";
-      partEl.textContent = partText;
+      partEl.textContent = partLabel;
 
       const titleEl = document.createElement("h3");
       titleEl.className = "article-title";
@@ -261,7 +251,7 @@
     const imagesEl = document.getElementById("modal-images");
     const contentEl = document.getElementById("modal-content");
 
-    const title = toSafeText(block.title, lang);
+    const title = toStringSafe(block.title);
     partEl.textContent = formatPartLabel(article, lang, idx);
     titleEl.textContent = title;
 
@@ -269,11 +259,11 @@
     const images = Array.isArray(article.images) ? article.images : [];
     images.forEach((src) => {
       const img = document.createElement("img");
-      attachSmartImage(img, src, title);
+      bindImage(img, src, title);
       imagesEl.appendChild(img);
     });
 
-    contentEl.innerHTML = toSafeText(block.content, lang);
+    contentEl.innerHTML = toStringSafe(block.content);
 
     modal.classList.add("open");
     modal.setAttribute("aria-hidden", "false");
