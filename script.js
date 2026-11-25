@@ -1,300 +1,191 @@
-(function () {
-  const STORAGE_KEY = "lsbd_lang";
-  let currentLang = localStorage.getItem(STORAGE_KEY) || "id";
-  let selectedPart = "all";
+document.addEventListener("DOMContentLoaded", () => {
+  let currentLang = localStorage.getItem("lsbd_lang") || "id";
+  let activeArticleId = null;
 
-  const uiText = {
-    id: {
-      pageTitle: "Little Steps Big Dreams",
-      brandTitle: "Little Steps Big Dreams",
-      brandTagline: "Cerita hangat, toleransi, dan langkah belajar bermakna untuk masa depan besar.",
-      allParts: "Semua Bagian",
-      readMore: "Baca Selengkapnya",
-      aboutBlogTitle: "Tentang Little Steps Big Dreams",
-      aboutBlogDesc: "Ruang berbagi cerita, refleksi, dan ide belajar sehari-hari tentang pendidikan karakter, toleransi, metode belajar yang menyenangkan, P5, serta pendekatan Montessori dan teknologi—tersedia dalam bahasa Indonesia, Inggris, dan Mandarin.",
-      aboutAuthorTitle: "Tentang Penulis",
-      aboutAuthorDesc: "<strong>Elok Wahyu Firmani</strong> — Kota REOG. Menulis dengan ketertarikan pada proses belajar yang bertahap, hangat, dan bermakna bagi anak maupun pendamping belajar.",
-      aboutContactTitle: "Kontak & Tautan",
-      linkedinLabel: "LinkedIn:",
-      footerText: "Little Steps Big Dreams • Elok Wahyu Firmani — Kota REOG",
-      footerAboutLink: "Halaman Tentang",
-      emptyArticles: "Belum ada artikel pada bagian ini."
-    },
+  const uiLabels = {
     en: {
-      pageTitle: "Little Steps Big Dreams",
-      brandTitle: "Little Steps Big Dreams",
-      brandTagline: "Warm stories, tolerance, and meaningful learning steps for big dreams.",
-      allParts: "All Parts",
-      readMore: "Read More",
-      aboutBlogTitle: "About Little Steps Big Dreams",
-      aboutBlogDesc: "A space for sharing stories, reflections, and everyday learning ideas on character education, tolerance, fun learning, P5 projects, as well as Montessori and technology approaches—available in Indonesian, English, and Mandarin.",
-      aboutAuthorTitle: "About the Author",
-      aboutAuthorDesc: "<strong>Elok Wahyu Firmani</strong> — Kota REOG. Writing with an interest in gradual, warm, and meaningful learning processes for children and learning companions.",
-      aboutContactTitle: "Contact & Links",
-      linkedinLabel: "LinkedIn:",
-      footerText: "Little Steps Big Dreams • Elok Wahyu Firmani — Kota REOG",
-      footerAboutLink: "About Page",
-      emptyArticles: "No articles available in this section yet."
+      tagline: "Character, curiosity, and everyday growth for children",
+      heroBadge: "✨ Family Learning & Story Space",
+      heroTitle: "Little Steps Big Dreams",
+      heroSubtitle: "Stories and reflections on character education, tolerance, fun learning, P5 projects, and Montessori-inspired independence.",
+      readMore: "Read Story →",
+      backBtn: "← Back to All Stories",
+      footer: "© Little Steps Big Dreams — Multilingual Stories on Early Childhood & Character Growth"
+    },
+    id: {
+      tagline: "Karakter, rasa ingin tahu, dan tumbuh kembang anak sehari-hari",
+      heroBadge: "✨ Ruang Belajar & Cerita Keluarga",
+      heroTitle: "Little Steps Big Dreams",
+      heroSubtitle: "Cerita dan refleksi seputar pendidikan karakter, toleransi, fun learning, proyek P5, serta kemandirian ala Montessori.",
+      readMore: "Baca Cerita →",
+      backBtn: "← Kembali ke Daftar Cerita",
+      footer: "© Little Steps Big Dreams — Cerita Multibahasa tentang Anak, Karakter, dan Pembelajaran"
     },
     zh: {
-      pageTitle: "Little Steps Big Dreams",
-      brandTitle: "Little Steps Big Dreams",
-      brandTagline: "用温暖的故事、包容精神与有意义的学习步伐，迈向远大梦想。",
-      allParts: "全部篇章",
-      readMore: "阅读全文",
-      aboutBlogTitle: "关于 Little Steps Big Dreams",
-      aboutBlogDesc: "这是一个分享品格教育、包容精神、趣味学习、P5项目以及蒙特梭利与科技学习方法的日常故事、反思与灵感空间——提供印尼语、英语和中文版本。",
-      aboutAuthorTitle: "关于作者",
-      aboutAuthorDesc: "<strong>Elok Wahyu Firmani</strong> —— 雷奥格之城（Kota REOG）。关注循序渐进、温暖且有意义的学习过程，陪伴孩子与学习引路人共同成长。",
-      aboutContactTitle: "联系方式与链接",
-      linkedinLabel: "领英（LinkedIn）：",
-      footerText: "Little Steps Big Dreams • Elok Wahyu Firmani — 雷奥格之城（Kota REOG）",
-      footerAboutLink: "关于页面",
-      emptyArticles: "该分类下暂无文章。"
+      tagline: "陪伴孩子在品格、好奇心与日常实践中成长",
+      heroBadge: "✨ 家庭学习与成长故事空间",
+      heroTitle: "Little Steps Big Dreams",
+      heroSubtitle: "关于品格教育、宗教宽容、趣味学习、P5 项目式学习与蒙特梭利独立能力的故事与随笔。",
+      readMore: "阅读全文 →",
+      backBtn: "← 返回故事列表",
+      footer: "© Little Steps Big Dreams — 儿童品格与成长多语言博客"
     }
   };
 
-  function toStringSafe(value) {
-    if (typeof value === "string" || typeof value === "number") return String(value);
-    return "";
-  }
+  const homeView = document.getElementById("homeView");
+  const articleView = document.getElementById("articleView");
+  const articlesGrid = document.getElementById("articlesGrid");
+  const articlePartBadge = document.getElementById("articlePartBadge");
+  const articleTitle = document.getElementById("articleTitle");
+  const articleGallery = document.getElementById("articleGallery");
+  const articleBody = document.getElementById("articleBody");
+  const backBtn = document.getElementById("backBtn");
+  const backBtnBottom = document.getElementById("backBtnBottom");
+  const brandLink = document.getElementById("brandLink");
+  const langButtons = document.querySelectorAll(".lang-btn");
 
-  function getArticlesList() {
-    if (Array.isArray(window.articlesData)) return window.articlesData;
-    if (typeof articlesData !== "undefined" && Array.isArray(articlesData)) return articlesData;
-    if (Array.isArray(window.articles)) return window.articles;
-    if (typeof articles !== "undefined" && Array.isArray(articles)) return articles;
-    return [];
-  }
+  const dataList = typeof articlesData !== "undefined" && Array.isArray(articlesData) ? articlesData : [];
 
-  function getLangBlock(article, lang) {
-    if (!article || typeof article !== "object") return {};
-    return article[lang] || article.id || article.en || article.zh || {};
-  }
+  function updateUIText() {
+    const labels = uiLabels[currentLang] || uiLabels.id;
+    document.documentElement.lang = currentLang === "zh" ? "zh-CN" : currentLang;
+    document.getElementById("siteTagline").textContent = labels.tagline;
+    document.getElementById("heroBadge").textContent = labels.heroBadge;
+    document.getElementById("heroTitle").textContent = labels.heroTitle;
+    document.getElementById("heroSubtitle").textContent = labels.heroSubtitle;
+    document.getElementById("footerText").textContent = labels.footer;
+    backBtn.textContent = labels.backBtn;
+    backBtnBottom.textContent = labels.backBtn;
 
-  function getPartKey(article, idx) {
-    if (article && article.id) return String(article.id);
-    return `part-${idx + 1}`;
-  }
-
-  function formatPartLabel(article, lang, idx) {
-    const rawId = getPartKey(article, idx);
-    const match = rawId.match(/part[-_\s]*(\d+)/i);
-    const num = match ? match[1] : String(idx + 1);
-
-    if (lang === "en") return `Part ${num}`;
-    if (lang === "zh") return `第 ${num} 部分`;
-    return `Bagian ${num}`;
-  }
-
-  function resolveImagePath(src) {
-    const raw = toStringSafe(src).trim().replace(/^\/+/, "");
-    if (!raw) return "";
-    if (raw.startsWith("images/")) return raw;
-    return `images/${raw}`;
-  }
-
-  function bindImage(imgEl, rawSrc, altText) {
-    const primary = resolveImagePath(rawSrc);
-    if (!primary) return;
-
-    const candidates = [primary];
-    if (primary.toLowerCase().endsWith(".jpg")) {
-      candidates.push(primary.slice(0, -4) + ".jpeg");
-      candidates.push(primary.slice(0, -4) + ".png");
-    }
-
-    let index = 0;
-    imgEl.alt = altText;
-    imgEl.src = candidates[index];
-
-    imgEl.onerror = function () {
-      index += 1;
-      if (index < candidates.length) {
-        imgEl.src = candidates[index];
-      } else {
-        imgEl.onerror = null;
-      }
-    };
-  }
-
-  function applyStaticTranslations(lang) {
-    const t = uiText[lang] || uiText.id;
-    document.documentElement.lang = lang === "zh" ? "zh-CN" : lang;
-    document.getElementById("page-title").textContent = t.pageTitle;
-    document.getElementById("brand-title").textContent = t.brandTitle;
-    document.getElementById("brand-tagline").textContent = t.brandTagline;
-
-    document.getElementById("about-blog-title").textContent = t.aboutBlogTitle;
-    document.getElementById("about-blog-desc").textContent = t.aboutBlogDesc;
-    document.getElementById("about-author-title").textContent = t.aboutAuthorTitle;
-    document.getElementById("about-author-desc").innerHTML = t.aboutAuthorDesc;
-    document.getElementById("about-contact-title").textContent = t.aboutContactTitle;
-    document.getElementById("about-linkedin-label").textContent = t.linkedinLabel;
-
-    document.getElementById("footer-text").textContent = t.footerText;
-    document.getElementById("footer-about-link").textContent = t.footerAboutLink;
-
-    document.querySelectorAll(".lang-btn").forEach((btn) => {
-      btn.classList.toggle("active", btn.dataset.lang === lang);
+    langButtons.forEach((btn) => {
+      btn.classList.toggle("active", btn.dataset.lang === currentLang);
     });
   }
 
-  function renderPartFilters(list, lang) {
-    const container = document.getElementById("part-filters");
-    const t = uiText[lang] || uiText.id;
-    container.innerHTML = "";
+  function renderArticlesList() {
+    articlesGrid.innerHTML = "";
+    const labels = uiLabels[currentLang] || uiLabels.id;
 
-    const allBtn = document.createElement("button");
-    allBtn.type = "button";
-    allBtn.className = "filter-btn" + (selectedPart === "all" ? " active" : "");
-    allBtn.textContent = t.allParts;
-    allBtn.addEventListener("click", function () {
-      selectedPart = "all";
-      renderAll();
-    });
-    container.appendChild(allBtn);
-
-    const seen = new Set();
-    list.forEach((article, idx) => {
-      const key = getPartKey(article, idx);
-      if (seen.has(key)) return;
-      seen.add(key);
-
-      const btn = document.createElement("button");
-      btn.type = "button";
-      btn.className = "filter-btn" + (selectedPart === key ? " active" : "");
-      btn.textContent = formatPartLabel(article, lang, idx);
-      btn.addEventListener("click", function () {
-        selectedPart = key;
-        renderAll();
-      });
-      container.appendChild(btn);
-    });
-  }
-
-  function renderArticles(list, lang) {
-    const grid = document.getElementById("articles-grid");
-    const t = uiText[lang] || uiText.id;
-    grid.innerHTML = "";
-
-    const filtered = list.filter((article, idx) => {
-      if (selectedPart === "all") return true;
-      return getPartKey(article, idx) === selectedPart;
-    });
-
-    if (filtered.length === 0) {
-      const emptyMsg = document.createElement("p");
-      emptyMsg.textContent = t.emptyArticles;
-      grid.appendChild(emptyMsg);
-      return;
-    }
-
-    filtered.forEach((article, idx) => {
-      const block = getLangBlock(article, lang);
-      const title = toStringSafe(block.title);
-      const excerpt = toStringSafe(block.excerpt);
-      const partLabel = formatPartLabel(article, lang, idx);
+    dataList.forEach((item, index) => {
+      const langData = item[currentLang] || item.id || item.en || {};
+      const thumbSrc = Array.isArray(item.images) && item.images.length > 0 ? item.images[0] : "";
 
       const card = document.createElement("article");
       card.className = "article-card";
 
-      const images = Array.isArray(article.images) ? article.images : [];
-      if (images.length > 0) {
+      const topSection = document.createElement("div");
+
+      if (thumbSrc) {
         const thumbWrap = document.createElement("div");
-        thumbWrap.className = "article-thumb-wrap";
+        thumbWrap.className = "card-thumb-wrap";
+
         const img = document.createElement("img");
-        img.className = "article-thumb";
-        bindImage(img, images[0], title);
+        img.src = thumbSrc;
+        img.alt = langData.title || "";
+        img.className = "card-thumb";
+        img.loading = "lazy";
+        img.onerror = () => {
+          thumbWrap.style.display = "none";
+        };
+
         thumbWrap.appendChild(img);
-        card.appendChild(thumbWrap);
+        topSection.appendChild(thumbWrap);
       }
 
-      const body = document.createElement("div");
-      body.className = "article-body";
+      const contentBox = document.createElement("div");
+      contentBox.className = "card-content";
 
-      const partEl = document.createElement("p");
-      partEl.className = "article-part";
-      partEl.textContent = partLabel;
+      const partTag = document.createElement("span");
+      partTag.className = "card-part";
+      partTag.textContent = `PART ${index + 1}`;
 
       const titleEl = document.createElement("h3");
-      titleEl.className = "article-title";
-      titleEl.textContent = title;
+      titleEl.className = "card-title";
+      titleEl.textContent = langData.title || "";
 
-      const summaryEl = document.createElement("p");
-      summaryEl.className = "article-summary";
-      summaryEl.textContent = excerpt;
+      const excerptEl = document.createElement("p");
+      excerptEl.className = "card-excerpt";
+      excerptEl.textContent = langData.excerpt || "";
+
+      contentBox.appendChild(partTag);
+      contentBox.appendChild(titleEl);
+      contentBox.appendChild(excerptEl);
+      topSection.appendChild(contentBox);
+
+      const footerBox = document.createElement("div");
+      footerBox.className = "card-footer";
 
       const readBtn = document.createElement("button");
       readBtn.type = "button";
       readBtn.className = "read-btn";
-      readBtn.textContent = t.readMore;
-      readBtn.addEventListener("click", function () {
-        openModal(article, lang, idx);
+      readBtn.textContent = labels.readMore;
+      readBtn.addEventListener("click", () => {
+        openArticle(item.id);
       });
 
-      body.appendChild(partEl);
-      body.appendChild(titleEl);
-      body.appendChild(summaryEl);
-      body.appendChild(readBtn);
-
-      card.appendChild(body);
-      grid.appendChild(card);
+      footerBox.appendChild(readBtn);
+      card.appendChild(topSection);
+      card.appendChild(footerBox);
+      articlesGrid.appendChild(card);
     });
   }
 
-  function openModal(article, lang, idx) {
-    const block = getLangBlock(article, lang);
-    const modal = document.getElementById("article-modal");
-    const partEl = document.getElementById("modal-part");
-    const titleEl = document.getElementById("modal-title");
-    const imagesEl = document.getElementById("modal-images");
-    const contentEl = document.getElementById("modal-content");
+  function openArticle(articleId) {
+    const itemIndex = dataList.findIndex((a) => a.id === articleId);
+    if (itemIndex === -1) return;
 
-    const title = toStringSafe(block.title);
-    partEl.textContent = formatPartLabel(article, lang, idx);
-    titleEl.textContent = title;
+    const item = dataList[itemIndex];
+    activeArticleId = articleId;
+    const langData = item[currentLang] || item.id || item.en || {};
 
-    imagesEl.innerHTML = "";
-    const images = Array.isArray(article.images) ? article.images : [];
-    images.forEach((src) => {
-      const img = document.createElement("img");
-      bindImage(img, src, title);
-      imagesEl.appendChild(img);
-    });
+    articlePartBadge.textContent = `PART ${itemIndex + 1}`;
+    articleTitle.textContent = langData.title || "";
+    articleBody.innerHTML = langData.content || "";
 
-    contentEl.innerHTML = toStringSafe(block.content);
+    articleGallery.innerHTML = "";
+    if (Array.isArray(item.images)) {
+      item.images.forEach((imgPath) => {
+        const img = document.createElement("img");
+        img.src = imgPath;
+        img.alt = langData.title || "";
+        img.onerror = () => {
+          img.style.display = "none";
+        };
+        articleGallery.appendChild(img);
+      });
+    }
 
-    modal.classList.add("open");
-    modal.setAttribute("aria-hidden", "false");
+    homeView.classList.add("hidden");
+    articleView.classList.remove("hidden");
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
-  function closeModal() {
-    const modal = document.getElementById("article-modal");
-    modal.classList.remove("open");
-    modal.setAttribute("aria-hidden", "true");
+  function showHome() {
+    activeArticleId = null;
+    articleView.classList.add("hidden");
+    homeView.classList.remove("hidden");
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
-  function renderAll() {
-    const list = getArticlesList();
-    applyStaticTranslations(currentLang);
-    renderPartFilters(list, currentLang);
-    renderArticles(list, currentLang);
-  }
-
-  document.querySelectorAll(".lang-btn").forEach((btn) => {
-    btn.addEventListener("click", function () {
+  langButtons.forEach((btn) => {
+    btn.addEventListener("click", () => {
       currentLang = btn.dataset.lang || "id";
-      localStorage.setItem(STORAGE_KEY, currentLang);
-      renderAll();
+      localStorage.setItem("lsbd_lang", currentLang);
+      updateUIText();
+      renderArticlesList();
+      if (activeArticleId) {
+        openArticle(activeArticleId);
+      }
     });
   });
 
-  document.getElementById("modal-close").addEventListener("click", closeModal);
-  document.getElementById("modal-backdrop").addEventListener("click", closeModal);
-  document.addEventListener("keydown", function (event) {
-    if (event.key === "Escape") closeModal();
+  backBtn.addEventListener("click", showHome);
+  backBtnBottom.addEventListener("click", showHome);
+  brandLink.addEventListener("click", (e) => {
+    e.preventDefault();
+    showHome();
   });
 
-  renderAll();
-})();
+  updateUIText();
+  renderArticlesList();
+});

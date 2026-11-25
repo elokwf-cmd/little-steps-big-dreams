@@ -3,21 +3,18 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Little Steps Big Dreams — Ruang berbagi cerita, refleksi, dan ide belajar sehari-hari tentang pendidikan karakter, toleransi, metode belajar yang menyenangkan, P5, serta pendekatan Montessori dan teknologi dalam bahasa Indonesia, Inggris, dan Mandarin." />
-  <title id="page-title">Little Steps Big Dreams</title>
+  <meta name="description" content="Little Steps Big Dreams — Cerita dan refleksi multibahasa tentang pendidikan karakter, toleransi, fun learning, proyek P5, dan metode Montessori." />
+  <title>Little Steps Big Dreams</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <header class="site-header">
     <div class="container header-inner">
-      <div class="brand-block">
-        <a href="index.html" class="brand-title" id="brand-title">Little Steps Big Dreams</a>
-        <p class="brand-tagline" id="brand-tagline">
-          Cerita hangat, toleransi, dan langkah belajar bermakna untuk masa depan besar.
-        </p>
+      <div class="brand-group">
+        <a href="index.html" id="brandLink" class="brand-title">🌱 Little Steps Big Dreams</a>
+        <p id="siteTagline" class="brand-tagline">Karakter, rasa ingin tahu, dan tumbuh kembang anak sehari-hari</p>
       </div>
-
-      <div class="lang-switcher" role="group" aria-label="Language switcher">
+      <div class="lang-switcher" role="group" aria-label="Pilih Bahasa">
         <button type="button" class="lang-btn active" data-lang="id">ID</button>
         <button type="button" class="lang-btn" data-lang="en">EN</button>
         <button type="button" class="lang-btn" data-lang="zh">中文</button>
@@ -26,56 +23,43 @@
   </header>
 
   <main class="container main-content">
-    <section class="filter-bar" aria-label="Filter bagian artikel">
-      <div id="part-filters" class="part-filters"></div>
+    <!-- Tampilan Utama (Beranda) -->
+    <section id="homeView">
+      <div class="hero-box">
+        <span class="hero-badge" id="heroBadge">✨ Ruang Belajar &amp; Cerita Keluarga</span>
+        <h1 id="heroTitle">Little Steps Big Dreams</h1>
+        <p id="heroSubtitle">
+          Cerita dan refleksi seputar pendidikan karakter, toleransi, fun learning, proyek P5, serta kemandirian ala Montessori.
+        </p>
+      </div>
+
+      <div id="articlesGrid" class="articles-grid" aria-label="Daftar Artikel"></div>
     </section>
 
-    <section id="articles-grid" class="articles-grid" aria-label="Daftar artikel"></section>
-
-    <section id="about-section" class="about-summary" aria-label="Tentang Little Steps Big Dreams">
-      <div class="about-card">
-        <h2 id="about-blog-title">Tentang Little Steps Big Dreams</h2>
-        <p id="about-blog-desc">
-          Ruang berbagi cerita, refleksi, dan ide belajar sehari-hari tentang pendidikan karakter, toleransi, metode belajar yang menyenangkan, P5, serta pendekatan Montessori dan teknologi—tersedia dalam bahasa Indonesia, Inggris, dan Mandarin.
-        </p>
+    <!-- Tampilan Baca Artikel Lengkap -->
+    <article id="articleView" class="article-view hidden" aria-live="polite">
+      <button type="button" id="backBtn" class="back-btn">← Kembali ke Daftar Cerita</button>
+      <header class="article-header">
+        <span id="articlePartBadge" class="card-part">PART 1</span>
+        <h2 id="articleTitle"></h2>
+      </header>
+      <div id="articleGallery" class="article-gallery"></div>
+      <div id="articleBody" class="article-body"></div>
+      <div class="article-footer-nav">
+        <button type="button" id="backBtnBottom" class="back-btn">← Kembali ke Daftar Cerita</button>
       </div>
-
-      <div class="about-card">
-        <h2 id="about-author-title">Tentang Penulis</h2>
-        <p id="about-author-desc">
-          <strong>Elok Wahyu Firmani</strong> — Kota REOG. Menulis dengan ketertarikan pada proses belajar yang bertahap, hangat, dan bermakna bagi anak maupun pendamping belajar.
-        </p>
-      </div>
-
-      <div class="about-card">
-        <h2 id="about-contact-title">Kontak &amp; Tautan</h2>
-        <p class="about-contact-item">
-          <strong id="about-linkedin-label">LinkedIn:</strong>
-          <a href="https://www.linkedin.com/in/elok-wf/" target="_blank" rel="noopener noreferrer">
-            www.linkedin.com/in/elok-wf
-          </a>
-        </p>
-      </div>
-    </section>
+    </article>
   </main>
 
   <footer class="site-footer">
     <div class="container footer-inner">
-      <p id="footer-text">Little Steps Big Dreams • Elok Wahyu Firmani — Kota REOG</p>
-      <a href="about.html" id="footer-about-link">Halaman Tentang</a>
+      <p id="footerText">© Little Steps Big Dreams — Cerita Multibahasa tentang Anak, Karakter, dan Pembelajaran</p>
+      <p class="footer-author">
+        ELOK-EWF-REOG / ID •
+        <a href="https://www.linkedin.com/in/elok-wf" target="_blank" rel="noopener noreferrer">www.linkedin.com/in/elok-wf</a>
+      </p>
     </div>
   </footer>
-
-  <div id="article-modal" class="modal" aria-hidden="true" role="dialog" aria-modal="true">
-    <div class="modal-backdrop" id="modal-backdrop"></div>
-    <div class="modal-dialog">
-      <button type="button" class="modal-close" id="modal-close" aria-label="Tutup">&times;</button>
-      <p id="modal-part" class="modal-part"></p>
-      <h2 id="modal-title" class="modal-title"></h2>
-      <div id="modal-images" class="modal-images"></div>
-      <div id="modal-content" class="modal-content"></div>
-    </div>
-  </div>
 
   <script src="articles.js"></script>
   <script src="script.js"></script>
