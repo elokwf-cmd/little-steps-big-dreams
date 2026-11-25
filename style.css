@@ -271,9 +271,9 @@ a {
 }
 
 .modal-close {
-  position: sticky;
-  top: 0;
-  float: right;
+  position: absolute;
+  top: 16px;
+  right: 16px;
   border: none;
   background: var(--bg-soft);
   color: var(--text-main);
@@ -294,6 +294,7 @@ a {
 
 .modal-title {
   margin: 0 0 14px;
+  padding-right: 40px;
   font-size: 1.4rem;
   line-height: 1.35;
 }
@@ -315,4 +316,31 @@ a {
 
 .modal-content p {
   margin: 0 0 12px;
+}
+
+.modal-content h4 {
+  margin: 18px 0 8px;
+  font-size: 1.08rem;
+}
+
+.modal-content ul {
+  margin: 0 0 14px;
+  padding-left: 20px;
+}
+
+.modal-content li {
+  margin-bottom: 6px;
+}
+
+.story-box {
+  margin: 16px 0;
+  padding: 14px 16px;
+  background: var(--bg-soft);
+  border-left: 4px solid var(--accent);
+  border-radius: 8px;
+}
+
+.comment-prompt {
+  margin-top: 14px;
+  color: var(--text-muted);
 }

@@ -54,24 +54,27 @@
     }
   };
 
-  function getLocalizedValue(value, lang) {
-    if (!value) return "";
-    if (typeof value === "string") return value;
-    if (typeof value === "object") {
-      return value[lang] || value.id || value.en || value.zh || "";
-    }
-    return String(value);
-  }
-
   function getArticlesList() {
+    if (Array.isArray(window.articlesData)) return window.articlesData;
+    if (typeof articlesData !== "undefined" && Array.isArray(articlesData)) return articlesData;
     if (Array.isArray(window.articles)) return window.articles;
     if (typeof articles !== "undefined" && Array.isArray(articles)) return articles;
     return [];
   }
 
-  function getPartLabel(article, lang) {
-    const rawPart = getLocalizedValue(article.part || article.category, lang);
-    return rawPart;
+  function getLangBlock(article, lang) {
+    if (!article || typeof article !== "object") return {};
+    return article[lang] || article.id || article.en || article.zh || {};
+  }
+
+  function formatPartLabel(article, lang) {
+    const rawId = String(article.id || "");
+    const match = rawId.match(/part[-_\s]*(\d+)/i);
+    const num = match ? match[1] : rawId;
+
+    if (lang === "en") return num ? `Part ${num}` : "Article";
+    if (lang === "zh") return num ? `第 ${num} 部分` : "文章";
+    return num ? `Bagian ${num}` : "Artikel";
   }
 
   function applyStaticTranslations(lang) {
@@ -111,19 +114,18 @@
     });
     container.appendChild(allBtn);
 
-    const seenKeys = new Set();
-    list.forEach((article) => {
-      const key = String(article.partKey || getPartLabel(article, "id") || getPartLabel(article, lang));
-      const label = getPartLabel(article, lang);
-      if (!key || seenKeys.has(key)) return;
-      seenKeys.add(key);
+    const seenIds = new Set();
+    list.forEach((article, idx) => {
+      const partKey = String(article.id || `item-${idx}`);
+      if (seenIds.has(partKey)) return;
+      seenIds.add(partKey);
 
       const btn = document.createElement("button");
       btn.type = "button";
-      btn.className = "filter-btn" + (selectedPart === key ? " active" : "");
-      btn.textContent = label || key;
+      btn.className = "filter-btn" + (selectedPart === partKey ? " active" : "");
+      btn.textContent = formatPartLabel(article, lang);
       btn.addEventListener("click", function () {
-        selectedPart = key;
+        selectedPart = partKey;
         renderAll();
       });
       container.appendChild(btn);
@@ -135,10 +137,10 @@
     const t = uiText[lang] || uiText.id;
     grid.innerHTML = "";
 
-    const filtered = list.filter((article) => {
+    const filtered = list.filter((article, idx) => {
       if (selectedPart === "all") return true;
-      const key = String(article.partKey || getPartLabel(article, "id") || getPartLabel(article, lang));
-      return key === selectedPart;
+      const partKey = String(article.id || `item-${idx}`);
+      return partKey === selectedPart;
     });
 
     if (filtered.length === 0) {
@@ -149,6 +151,10 @@
     }
 
     filtered.forEach((article) => {
+      const block = getLangBlock(article, lang);
+      const title = block.title || "";
+      const excerpt = block.excerpt || "";
+
       const card = document.createElement("article");
       card.className = "article-card";
 
@@ -159,7 +165,7 @@
         const img = document.createElement("img");
         img.className = "article-thumb";
         img.src = images[0];
-        img.alt = getLocalizedValue(article.title, lang);
+        img.alt = title;
         img.loading = "lazy";
         thumbWrap.appendChild(img);
         card.appendChild(thumbWrap);
@@ -170,15 +176,15 @@
 
       const partEl = document.createElement("p");
       partEl.className = "article-part";
-      partEl.textContent = getPartLabel(article, lang);
+      partEl.textContent = formatPartLabel(article, lang);
 
       const titleEl = document.createElement("h3");
       titleEl.className = "article-title";
-      titleEl.textContent = getLocalizedValue(article.title, lang);
+      titleEl.textContent = title;
 
       const summaryEl = document.createElement("p");
       summaryEl.className = "article-summary";
-      summaryEl.textContent = getLocalizedValue(article.summary || article.excerpt || article.content, lang);
+      summaryEl.textContent = excerpt;
 
       const readBtn = document.createElement("button");
       readBtn.type = "button";
@@ -199,40 +205,26 @@
   }
 
   function openModal(article, lang) {
+    const block = getLangBlock(article, lang);
     const modal = document.getElementById("article-modal");
     const partEl = document.getElementById("modal-part");
     const titleEl = document.getElementById("modal-title");
     const imagesEl = document.getElementById("modal-images");
     const contentEl = document.getElementById("modal-content");
 
-    partEl.textContent = getPartLabel(article, lang);
-    titleEl.textContent = getLocalizedValue(article.title, lang);
+    partEl.textContent = formatPartLabel(article, lang);
+    titleEl.textContent = block.title || "";
 
     imagesEl.innerHTML = "";
     const images = Array.isArray(article.images) ? article.images : [];
     images.forEach((src) => {
       const img = document.createElement("img");
       img.src = src;
-      img.alt = getLocalizedValue(article.title, lang);
+      img.alt = block.title || "";
       imagesEl.appendChild(img);
     });
 
-    contentEl.innerHTML = "";
-    const rawContent = getLocalizedValue(article.content, lang);
-    const paragraphs = String(rawContent)
-      .split(/\n\s*\n/)
-      .map((p) => p.trim())
-      .filter(Boolean);
-
-    if (paragraphs.length === 0 && rawContent) {
-      paragraphs.push(String(rawContent));
-    }
-
-    paragraphs.forEach((text) => {
-      const p = document.createElement("p");
-      p.textContent = text;
-      contentEl.appendChild(p);
-    });
+    contentEl.innerHTML = block.content || "";
 
     modal.classList.add("open");
     modal.setAttribute("aria-hidden", "false");

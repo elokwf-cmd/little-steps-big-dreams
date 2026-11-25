@@ -5,8 +5,8 @@ const articlesData = [
   {
     id: "part-1",
     images: [
-      "images/imagesblog1-tolerance-1.jpg",
-  "images/imagesblog1-tolerance-2.jpg"
+      "images/blog1-tolerance-1.jpg",
+      "images/blog1-tolerance-2.jpg"
     ],
     en: {
       title: "The Importance of Character Education and Religious Tolerance from an Early Age in Schools",
@@ -133,8 +133,8 @@ const articlesData = [
   {
     id: "part-2",
     images: [
-      "images/imagesblog2-fun-1.jpg",
-  "images/imagesblog2-fun-2.jpg"
+      "images/blog2-fun-1.jpg",
+      "images/blog2-fun-2.jpg"
     ],
     en: {
       title: "Exploring the Fun Learning Method: Nurturing Children’s Talents and Life Skills",
@@ -258,8 +258,8 @@ const articlesData = [
   {
     id: "part-3",
     images: [
-      "images/imagesblog3-p5-1.jpg",
-  "images/imagesblog3-p5-2.jpg"
+      "images/blog3-p5-1.jpg",
+      "images/blog3-p5-2.jpg"
     ],
     en: {
       title: "Beyond the Classroom: Project-Based Learning (P5) and Practical Life Skills for Children",
@@ -401,8 +401,8 @@ const articlesData = [
   {
     id: "part-4",
     images: [
-      "images/imagesblog4-tech-1.jpg",
-  "images/imagesblog4-tech-2.jpg"
+      "images/blog4-tech-1.jpg",
+      "images/blog4-tech-2.jpg"
     ],
     en: {
       title: "Blending Character, Technology, and Montessori Methods in Today’s Schools",
